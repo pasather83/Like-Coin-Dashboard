@@ -1,6 +1,7 @@
+import { getAssociatedTokenAddress } from '@solana/spl-token'
 import { useEffect, useState } from 'react'
 import { Connection, PublicKey } from '@solana/web3.js'
-import { getAssociatedTokenAddress } from '@solana/spl-token'
+
 
 const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
 const RPC_URL = 'https://api.devnet.solana.com'
