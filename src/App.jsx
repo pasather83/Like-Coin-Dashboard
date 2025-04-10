@@ -1,72 +1,82 @@
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
+
 import { useEffect, useState } from 'react'
-import { Connection, PublicKey, Keypair, sendAndConfirmTransaction } from '@solana/web3.js'
+import { Connection, PublicKey, sendAndConfirmTransaction, Transaction } from '@solana/web3.js'
 import {
   getAssociatedTokenAddressSync,
-  createTransferInstruction,
-  getAccount
+  getAccount,
+  createTransferInstruction
 } from '@solana/spl-token'
 
-const RPC_URL = 'https://api.devnet.solana.com'
-const connection = new Connection(RPC_URL)
-const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
+// 🔑 Master wallet secret key from .env file
+const secret = import.meta.env.VITE_MASTER_SECRET
+const secretKey = Uint8Array.from(JSON.parse(secret))
+const masterKeypair = window.solanaWeb3.Keypair.fromSecretKey(secretKey)
 
-// Your secret key array (DO NOT commit this to GitHub in production!)
-const secretKey = Uint8Array.from([243,172,153,145,97,255,18,165,27,116,177,88,144,130,13,58,149,205,251,248,196,50,96,145,181,214,53,108,126,72,237,237,71,68,26,11,64,195,30,17,166,12,207,187,119,161,56,124,127,69,1,177,122,221,211,31,55,49,43,188,148,4,43,54])
-const fromWallet = Keypair.fromSecretKey(secretKey)
+const RPC_URL = 'https://api.devnet.solana.com'
+const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
 
 function App() {
   const [wallet, setWallet] = useState(null)
   const [likeBalance, setLikeBalance] = useState(null)
-  const [txStatus, setTxStatus] = useState(null)
+
+  // 🧠 Get LIKE balance of connected wallet
+  const fetchBalance = async (publicKey) => {
+    const connection = new Connection(RPC_URL)
+    const ata = getAssociatedTokenAddressSync(LIKE_MINT, publicKey)
+    try {
+      const account = await getAccount(connection, ata)
+      const amount = Number(account.amount) / 1_000_000_000 // Adjust decimals
+      setLikeBalance(amount)
+    } catch (err) {
+      console.error('Error fetching balance:', err)
+      setLikeBalance(0)
+    }
+  }
+
+  // 🚀 Transfer 100 LIKE from master to connected wallet
+  const transferTokens = async () => {
+    if (!wallet) return
+    try {
+      const connection = new Connection(RPC_URL)
+      const fromTokenAccount = getAssociatedTokenAddressSync(LIKE_MINT, masterKeypair.publicKey)
+      const toTokenAccount = getAssociatedTokenAddressSync(LIKE_MINT, new PublicKey(wallet))
+
+      const transaction = new Transaction().add(
+        createTransferInstruction(
+          fromTokenAccount,
+          toTokenAccount,
+          masterKeypair.publicKey,
+          100_000_000 // 100 LIKE
+        )
+      )
+
+      const signature = await sendAndConfirmTransaction(connection, transaction, [masterKeypair])
+      console.log('✅ Transfer signature:', signature)
+      alert('100 LIKE sent!')
+
+      // Update balance
+      fetchBalance(new PublicKey(wallet))
+    } catch (err) {
+      console.error('❌ Transfer error:', err)
+      alert('Transfer failed. See console for details.')
+    }
+  }
 
   useEffect(() => {
-    const checkWalletAndFetchBalance = async () => {
+    const checkWallet = async () => {
       if ('solana' in window) {
         const provider = window.solana
         if (provider.isPhantom) {
-          try {
-            await provider.connect()
-            const pubKey = provider.publicKey
-            setWallet(pubKey.toString())
-
-            const ata = getAssociatedTokenAddressSync(LIKE_MINT, pubKey)
-            const account = await getAccount(connection, ata)
-            setLikeBalance(Number(account.amount) / 1_000_000_000)
-          } catch (err) {
-            setLikeBalance(0)
-          }
+          await provider.connect()
+          setWallet(provider.publicKey.toString())
+          fetchBalance(provider.publicKey)
         }
       }
     }
-
-    checkWalletAndFetchBalance()
+    checkWallet()
   }, [])
-
-  const handleGetTokens = async () => {
-    if (!wallet) return
-    setTxStatus('Sending...')
-
-    try {
-      const toPubkey = new PublicKey(wallet)
-      const fromATA = getAssociatedTokenAddressSync(LIKE_MINT, fromWallet.publicKey)
-      const toATA = getAssociatedTokenAddressSync(LIKE_MINT, toPubkey)
-
-      const ix = createTransferInstruction(fromATA, toATA, fromWallet.publicKey, 100_000_000) // 100 LIKE
-
-      const tx = await sendAndConfirmTransaction(connection, {
-        feePayer: fromWallet.publicKey,
-        instructions: [ix],
-        signers: [fromWallet],
-      })
-
-      setTxStatus('✅ Success: ' + tx)
-    } catch (e) {
-      console.error(e)
-      setTxStatus('❌ Error sending tokens')
-    }
-  }
 
   return (
     <div style={{
@@ -82,22 +92,19 @@ function App() {
       <h1>🚀 Like Coin Dashboard</h1>
       <p>Wallet: {wallet || 'Not connected'}</p>
       <p>LIKE Balance: {likeBalance !== null ? likeBalance : 'Loading...'}</p>
-
       {wallet && (
-        <button onClick={handleGetTokens} style={{
-          padding: '10px 20px',
-          fontSize: '16px',
+        <button onClick={transferTokens} style={{
           marginTop: '20px',
-          cursor: 'pointer',
-          background: '#00ff9d',
+          padding: '10px 20px',
+          backgroundColor: '#00c896',
           border: 'none',
-          borderRadius: '10px'
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontWeight: 'bold'
         }}>
-          Get 100 LIKE 💸
+          Get 100 LIKE
         </button>
       )}
-
-      {txStatus && <p style={{ marginTop: '20px' }}>{txStatus}</p>}
     </div>
   )
 }
