@@ -1,5 +1,6 @@
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
+
 import { useEffect, useState } from 'react'
 import { Connection, PublicKey } from '@solana/web3.js'
 import {
@@ -20,24 +21,27 @@ function App() {
         const provider = window.solana
         if (provider.isPhantom) {
           try {
+            // Connect to Phantom wallet
             await provider.connect()
             const walletPublicKey = provider.publicKey
             setWallet(walletPublicKey.toString())
 
+            // Connect to Solana RPC and get associated token account
             const connection = new Connection(RPC_URL)
             const ata = await getAssociatedTokenAddress(
               LIKE_MINT,
               walletPublicKey
             )
 
-            console.log('Wallet PublicKey:', walletPublicKey.toBase58())
-            console.log('Associated Token Account:', ata.toBase58())
+            console.log('Wallet:', walletPublicKey.toBase58())
+            console.log('ATA:', ata.toBase58())
 
+            // Fetch token account and display balance
             const account = await getAccount(connection, ata)
-            const amount = Number(account.amount) / 1_000_000_000 // adjust decimals
+            const amount = Number(account.amount) / 1_000_000_000 // adjust for decimals
             setLikeBalance(amount)
           } catch (err) {
-            console.error('Error fetching balance:', err)
+            console.error('Error fetching LIKE balance:', err)
             setLikeBalance(0)
           }
         }
