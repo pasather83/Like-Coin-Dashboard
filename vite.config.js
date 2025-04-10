@@ -1,11 +1,30 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import rollupNodePolyFill from 'rollup-plugin-node-polyfills'
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    host: '0.0.0.0',
-    port: 5173,
+  define: {
+    global: 'globalThis',
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true
+        })
+      ]
+    }
+  },
+  build: {
+    rollupOptions: {
+      plugins: [rollupNodePolyFill()]
+    }
+  },
+  resolve: {
+    alias: {
+      buffer: 'buffer',
+    }
+  }
 })
