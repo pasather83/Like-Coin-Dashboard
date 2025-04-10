@@ -1,41 +1,46 @@
 import { Buffer } from 'buffer'
 window.Buffer = Buffer
+
 import { useEffect, useState } from 'react'
-import { Connection, PublicKey } from '@solana/web3.js'
+import { Connection, PublicKey, Keypair, sendAndConfirmTransaction } from '@solana/web3.js'
 import {
   getAssociatedTokenAddressSync,
-  getAccount
+  createTransferInstruction
 } from '@solana/spl-token'
 
 const RPC_URL = 'https://api.devnet.solana.com'
 const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
 
+// Replace this with your actual id.json contents
+const masterKeypair = Keypair.fromSecretKey(Uint8Array.from([
+  // paste your secret key array from id.json here
+]))
+
 function App() {
   const [wallet, setWallet] = useState(null)
   const [likeBalance, setLikeBalance] = useState(null)
-  const [message, setMessage] = useState('')
+  const connection = new Connection(RPC_URL)
 
   useEffect(() => {
     const checkWalletAndFetchBalance = async () => {
       if ('solana' in window) {
         const provider = window.solana
         if (provider.isPhantom) {
+          await provider.connect()
+          const walletPublicKey = provider.publicKey
+          setWallet(walletPublicKey.toString())
+
+          const ata = getAssociatedTokenAddressSync(
+            LIKE_MINT,
+            walletPublicKey
+          )
+
           try {
-            await provider.connect()
-            const walletPublicKey = provider.publicKey
-            setWallet(walletPublicKey.toString())
-
-            const connection = new Connection(RPC_URL)
-            const ata = getAssociatedTokenAddressSync(
-              LIKE_MINT,
-              walletPublicKey
-            )
-
-            const account = await getAccount(connection, ata)
-            const amount = Number(account.amount) / 1_000_000_000
+            const accountInfo = await connection.getTokenAccountBalance(ata)
+            const amount = Number(accountInfo.value.amount) / 1_000_000_000
             setLikeBalance(amount)
-          } catch (err) {
-            console.error('Error fetching balance:', err)
+          } catch (e) {
+            console.error('Token account not found or empty:', e)
             setLikeBalance(0)
           }
         }
@@ -45,10 +50,27 @@ function App() {
     checkWalletAndFetchBalance()
   }, [])
 
-  // Faucet Simulation
-  const simulateFaucet = () => {
-    setMessage('💧 Simulated 1000 LIKE Coin airdrop to your wallet!')
-    setLikeBalance((prev) => prev + 1000)
+  const handleFaucetDrop = async () => {
+    try {
+      const userPublicKey = new PublicKey(wallet)
+      const userATA = getAssociatedTokenAddressSync(LIKE_MINT, userPublicKey)
+      const masterATA = getAssociatedTokenAddressSync(LIKE_MINT, masterKeypair.publicKey)
+
+      const tx = new Transaction().add(
+        createTransferInstruction(
+          masterATA,
+          userATA,
+          masterKeypair.publicKey,
+          100_000_000 // 100 LIKE (with 9 decimals)
+        )
+      )
+
+      const signature = await sendAndConfirmTransaction(connection, tx, [masterKeypair])
+      alert('Sent 100 LIKE! Tx: ' + signature)
+    } catch (err) {
+      console.error('Faucet error:', err)
+      alert('Faucet failed: ' + err.message)
+    }
   }
 
   return (
@@ -66,19 +88,20 @@ function App() {
       <p>Wallet: {wallet || 'Not connected'}</p>
       <p>LIKE Balance: {likeBalance !== null ? likeBalance : 'Loading...'}</p>
 
-      <button
-        onClick={simulateFaucet}
-        style={{
+      {wallet && (
+        <button onClick={handleFaucetDrop} style={{
           marginTop: '20px',
           padding: '10px 20px',
           fontSize: '16px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
           cursor: 'pointer'
-        }}
-      >
-        💧 Get Free LIKE
-      </button>
-
-      {message && <p style={{ marginTop: '10px' }}>{message}</p>}
+        }}>
+          Get 100 LIKE 💰
+        </button>
+      )}
     </div>
   )
 }
