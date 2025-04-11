@@ -7,32 +7,17 @@ import {
   getOrCreateAssociatedTokenAccount,
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token'
-import { Buffer } from 'buffer'
 
+import { Buffer } from 'buffer'
 window.Buffer = Buffer
 
 const RPC_URL = 'https://api.devnet.solana.com'
 const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
 
-// Step 4: Load secret key from .env
-const secret = import.meta.env.VITE_MASTER_SECRET
-let masterWallet
-
-if (!secret) {
-  console.error("🚨 VITE_MASTER_SECRET is undefined. Check your .env and Vite config.")
-} else {
-  try {
-    const masterSecretKey = JSON.parse(secret)
-    masterWallet = Keypair.fromSecretKey(Uint8Array.from(masterSecretKey))
-    console.log("✅ Master wallet loaded.")
-  } catch (err) {
-    console.error("❌ Failed to parse VITE_MASTER_SECRET:", err)
-  }
-}
-
 function App() {
   const [wallet, setWallet] = useState(null)
   const [likeBalance, setLikeBalance] = useState(null)
+  const [sending, setSending] = useState(false)
 
   useEffect(() => {
     const checkWalletAndFetchBalance = async () => {
@@ -50,6 +35,9 @@ function App() {
               walletPublicKey
             )
 
+            console.log('Wallet:', walletPublicKey.toBase58())
+            console.log('ATA:', ata.toBase58())
+
             const account = await getAccount(connection, ata)
             const amount = Number(account.amount) / 1_000_000_000
             setLikeBalance(amount)
@@ -64,47 +52,58 @@ function App() {
     checkWalletAndFetchBalance()
   }, [])
 
-  const sendLikeTokens = async () => {
-    if (!wallet || !masterWallet) return
+  const handleGet100LIKE = async () => {
+    if (!wallet) return
+    setSending(true)
 
     try {
       const connection = new Connection(RPC_URL)
-      const recipientPublicKey = new PublicKey(wallet)
+      const recipient = new PublicKey(wallet)
 
-      const senderTokenAccount = await getOrCreateAssociatedTokenAccount(
+      const secretKey = JSON.parse(import.meta.env.VITE_MASTER_SECRET)
+      const fromWallet = Keypair.fromSecretKey(Uint8Array.from(secretKey))
+
+      const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
         connection,
-        masterWallet,
+        fromWallet,
         LIKE_MINT,
-        masterWallet.publicKey
+        fromWallet.publicKey
       )
 
-      const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
+      const toTokenAccount = await getOrCreateAssociatedTokenAccount(
         connection,
-        masterWallet,
+        fromWallet,
         LIKE_MINT,
-        recipientPublicKey
+        recipient
       )
 
-      const transferIx = createTransferInstruction(
-        senderTokenAccount.address,
-        recipientTokenAccount.address,
-        masterWallet.publicKey,
-        100_000_000 // 100 LIKE (in lamports)
+      const tx = await connection.sendTransaction(
+        await (async () => {
+          const { Transaction } = await import('@solana/web3.js')
+          const transaction = new Transaction().add(
+            createTransferInstruction(
+              fromTokenAccount.address,
+              toTokenAccount.address,
+              fromWallet.publicKey,
+              100_000_000, // 100 LIKE
+              [],
+              TOKEN_PROGRAM_ID
+            )
+          )
+          transaction.feePayer = fromWallet.publicKey
+          transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+          transaction.sign(fromWallet)
+          return transaction
+        })()
       )
 
-      const transaction = await connection.sendTransaction(
-        {
-          feePayer: masterWallet.publicKey,
-          recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-          instructions: [transferIx],
-          signatures: []
-        },
-        [masterWallet]
-      )
-
-      console.log("✅ Transfer signature:", transaction)
-    } catch (error) {
-      console.error("❌ Transfer failed:", error)
+      console.log('✅ Transaction sent:', tx)
+      alert('100 LIKE sent successfully!')
+    } catch (err) {
+      console.error('❌ Error sending LIKE:', err)
+      alert('Failed to send LIKE.')
+    } finally {
+      setSending(false)
     }
   }
 
@@ -125,18 +124,19 @@ function App() {
 
       {wallet && (
         <button
-          onClick={sendLikeTokens}
+          onClick={handleGet100LIKE}
+          disabled={sending}
           style={{
-            padding: '10px 20px',
-            backgroundColor: '#ffc107',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
             marginTop: '20px',
-            fontWeight: 'bold'
+            padding: '10px 20px',
+            fontSize: '16px',
+            backgroundColor: '#ffcc00',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
           }}
         >
-          Get 100 LIKE
+          {sending ? 'Sending...' : '🎁 Get 100 LIKE'}
         </button>
       )}
     </div>
