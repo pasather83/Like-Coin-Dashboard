@@ -72,6 +72,16 @@ function App() {
 
   const handleFaucet = async () => {
     if (!wallet) return
+
+    const lastClaim = localStorage.getItem(`lastFaucet_${wallet}`)
+    const now = Date.now()
+    const cooldown = 5 * 60 * 1000 // 5 minutes in milliseconds
+
+    if (lastClaim && now - parseInt(lastClaim) < cooldown) {
+      alert("⏳ Please wait before claiming again!")
+      return
+    }
+
     setSending(true)
     try {
       const secret = import.meta.env.VITE_MASTER_SECRET
@@ -88,7 +98,7 @@ function App() {
         fromATA,
         toATA,
         fromWallet.publicKey,
-        100_000_000_000, // ✅ 100 LIKE
+        100_000_000_000,
         [],
         TOKEN_PROGRAM_ID
       )
@@ -99,6 +109,8 @@ function App() {
 
       const sig = await connection.sendTransaction(tx, [fromWallet])
       console.log(`✅ Sent 100 LIKE to ${wallet}: ${sig}`)
+
+      localStorage.setItem(`lastFaucet_${wallet}`, now.toString())
     } catch (err) {
       console.error('❌ Error sending LIKE:', err)
     } finally {
