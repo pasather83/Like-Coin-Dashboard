@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Connection, PublicKey, Keypair, Transaction } from '@solana/web3.js'
+import { Connection, PublicKey, Keypair } from '@solana/web3.js'
 import {
   getAssociatedTokenAddressSync,
   createTransferInstruction,
@@ -45,11 +45,13 @@ function App() {
 
   const handleFaucet = async () => {
     if (!wallet) return
-    setSending(true)
 
+    setSending(true)
     try {
       const secret = import.meta.env.VITE_MASTER_SECRET
-      if (!secret) throw new Error('⛔ VITE_MASTER_SECRET is undefined. Check your .env and Vite config.')
+      if (!secret) {
+        throw new Error('⛔ VITE_MASTER_SECRET is undefined. Check your .env and Vite config.')
+      }
 
       const secretKey = Uint8Array.from(JSON.parse(secret))
       const fromWallet = Keypair.fromSecretKey(secretKey)
@@ -58,34 +60,26 @@ function App() {
       const fromATA = getAssociatedTokenAddressSync(LIKE_MINT, fromWallet.publicKey)
       const toATA = getAssociatedTokenAddressSync(LIKE_MINT, new PublicKey(wallet))
 
-	const ix = createTransferInstruction(fromATA,toATA,fromWallet.publicKey,100_000_000_000, // ✅ 100 LIKE
-  [],
-  TOKEN_PROGRAM_ID
-)
-   
-
-
-   const ix = createTransferInstruction(
+      const ix = createTransferInstruction(
         fromATA,
         toATA,
         fromWallet.publicKey,
-	100_000_000_000, // 100 LIKE in lamports
+        100_000_000_000, // ✅ 100 LIKE
         [],
         TOKEN_PROGRAM_ID
       )
 
-      const transaction = new Transaction().add(ix)
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
-      transaction.feePayer = fromWallet.publicKey
+      const { blockhash } = await connection.getLatestBlockhash()
+      const tx = await connection.sendTransaction(
+        {
+          recentBlockhash: blockhash,
+          feePayer: fromWallet.publicKey,
+          instructions: [ix],
+        },
+        [fromWallet]
+      )
 
-      const tx = await connection.sendTransaction(transaction, [fromWallet])
       console.log(`✅ Sent 100 LIKE to ${wallet}: ${tx}`)
-
-      // Update UI balance
-      const ata = getAssociatedTokenAddressSync(LIKE_MINT, new PublicKey(wallet))
-      const updatedAccount = await getAccount(connection, ata)
-      const updatedAmount = Number(updatedAccount.amount) / 1_000_000_000
-      setLikeBalance(updatedAmount)
     } catch (err) {
       console.error('❌ Error sending LIKE:', err)
     } finally {
