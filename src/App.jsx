@@ -22,6 +22,20 @@ function App() {
   const [sending, setSending] = useState(false)
   const [transactions, setTransactions] = useState([])
 
+  const disconnectWallet = async () => {
+    if (window.solana?.isPhantom) {
+      try {
+        await window.solana.disconnect()
+        setWallet(null)
+        setLikeBalance(null)
+        setTransactions([])
+        toast.info('👋 Wallet disconnected')
+      } catch (err) {
+        console.error('Error disconnecting wallet:', err)
+      }
+    }
+  }
+
   useEffect(() => {
     const checkWalletAndFetchBalance = async () => {
       if ('solana' in window) {
@@ -142,9 +156,26 @@ function App() {
       <h1>🚀 Like Coin Dashboard</h1>
 
       {wallet && (
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-          <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
-          <p style={{ marginLeft: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
+            <p style={{ marginLeft: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
+          </div>
+          <button
+            onClick={disconnectWallet}
+            style={{
+              backgroundColor: '#333',
+              color: '#fff',
+              padding: '6px 14px',
+              fontSize: '14px',
+              borderRadius: '6px',
+              marginTop: '10px',
+              cursor: 'pointer',
+              border: '1px solid #fff'
+            }}
+          >
+            Disconnect Wallet
+          </button>
         </div>
       )}
 
