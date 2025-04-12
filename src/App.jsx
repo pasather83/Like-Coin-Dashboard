@@ -7,6 +7,7 @@ import {
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token'
 import { Buffer } from 'buffer'
+import Blockies from 'react-blockies'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -124,6 +125,8 @@ function App() {
     }
   }
 
+  const shortenWallet = (addr) => `${addr.slice(0, 4)}...${addr.slice(-4)}`
+
   return (
     <div style={{
       fontFamily: 'Arial, sans-serif',
@@ -137,8 +140,16 @@ function App() {
     }}>
       <ToastContainer />
       <h1>🚀 Like Coin Dashboard</h1>
-      <p><strong>Wallet:</strong> {wallet || 'Not connected'}</p>
+
+      {wallet && (
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+          <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
+          <p style={{ marginLeft: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
+        </div>
+      )}
+
       <p><strong>LIKE Balance:</strong> {likeBalance !== null ? likeBalance : 'Loading...'}</p>
+
       {wallet && (
         <button
           onClick={handleFaucet}
