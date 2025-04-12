@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Connection, PublicKey, Keypair } from '@solana/web3.js'
+import { Connection, PublicKey, Keypair, Transaction } from '@solana/web3.js'
 import {
   getAssociatedTokenAddressSync,
   createTransferInstruction,
@@ -69,17 +69,12 @@ function App() {
         TOKEN_PROGRAM_ID
       )
 
-      const { blockhash } = await connection.getLatestBlockhash()
-      const tx = await connection.sendTransaction(
-        {
-          recentBlockhash: blockhash,
-          feePayer: fromWallet.publicKey,
-          instructions: [ix],
-        },
-        [fromWallet]
-      )
+      const tx = new Transaction().add(ix)
+      tx.feePayer = fromWallet.publicKey
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 
-      console.log(`✅ Sent 100 LIKE to ${wallet}: ${tx}`)
+      const signed = await connection.sendTransaction(tx, [fromWallet])
+      console.log(`✅ Sent 100 LIKE to ${wallet}: ${signed}`)
     } catch (err) {
       console.error('❌ Error sending LIKE:', err)
     } finally {
