@@ -7,6 +7,9 @@ import {
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token'
 import { Buffer } from 'buffer'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
 window.Buffer = Buffer
 
 const RPC_URL = 'https://api.devnet.solana.com'
@@ -75,17 +78,17 @@ function App() {
 
     const lastClaim = localStorage.getItem(`lastFaucet_${wallet}`)
     const now = Date.now()
-    const cooldown = 5 * 60 * 1000 // 5 minutes in milliseconds
+    const cooldown = 5 * 60 * 1000 // 5 minutes
 
     if (lastClaim && now - parseInt(lastClaim) < cooldown) {
-      alert("⏳ Please wait before claiming again!")
+      toast.warn('⏳ Please wait before claiming again!')
       return
     }
 
     setSending(true)
     try {
       const secret = import.meta.env.VITE_MASTER_SECRET
-      if (!secret) throw new Error('⛔ VITE_MASTER_SECRET is undefined. Check your .env and Vite config.')
+      if (!secret) throw new Error('⛔ VITE_MASTER_SECRET is undefined.')
 
       const secretKey = Uint8Array.from(JSON.parse(secret))
       const fromWallet = Keypair.fromSecretKey(secretKey)
@@ -108,11 +111,14 @@ function App() {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 
       const sig = await connection.sendTransaction(tx, [fromWallet])
-      console.log(`✅ Sent 100 LIKE to ${wallet}: ${sig}`)
+      toast.success(`✅ Sent 100 LIKE!`, {
+        onClick: () => window.open(`https://explorer.solana.com/tx/${sig}?cluster=devnet`, '_blank'),
+      })
 
       localStorage.setItem(`lastFaucet_${wallet}`, now.toString())
     } catch (err) {
       console.error('❌ Error sending LIKE:', err)
+      toast.error('❌ Failed to send LIKE!')
     } finally {
       setSending(false)
     }
@@ -129,6 +135,7 @@ function App() {
       alignItems: 'center',
       justifyContent: 'center'
     }}>
+      <ToastContainer />
       <h1>🚀 Like Coin Dashboard</h1>
       <p><strong>Wallet:</strong> {wallet || 'Not connected'}</p>
       <p><strong>LIKE Balance:</strong> {likeBalance !== null ? likeBalance : 'Loading...'}</p>

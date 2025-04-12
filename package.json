@@ -15,6 +15,7 @@
     "@vercel/analytics": "^1.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-toastify": "^11.0.5",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "stream-browserify": "^3.0.0"
   },
