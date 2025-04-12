@@ -5,6 +5,15 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      buffer: 'buffer',
+      process: 'process/browser',
+    },
+  },
+  define: {
+    'process.env': {}, // required for polyfills
+  },
   optimizeDeps: {
     esbuildOptions: {
       define: {
@@ -16,16 +25,7 @@ export default defineConfig({
           process: true,
         }),
         NodeModulesPolyfillPlugin(),
-      ]
-    }
-  },
-  define: {
-    'process.env': {},
-  },
-  resolve: {
-    alias: {
-      buffer: 'buffer',
-      process: 'process/browser',
+      ],
     },
-  }
+  },
 })

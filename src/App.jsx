@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Connection, PublicKey, Keypair } from '@solana/web3.js'
+import { Connection, PublicKey, Keypair, Transaction } from '@solana/web3.js'
 import {
   getAssociatedTokenAddressSync,
   createTransferInstruction,
@@ -45,7 +45,6 @@ function App() {
 
   const handleFaucet = async () => {
     if (!wallet) return
-
     setSending(true)
     try {
       const secret = import.meta.env.VITE_MASTER_SECRET
@@ -60,16 +59,12 @@ function App() {
       const toATA = getAssociatedTokenAddressSync(LIKE_MINT, new PublicKey(wallet))
 
       const ix = createTransferInstruction(fromATA, toATA, fromWallet.publicKey, 100_000_000)
-      const tx = await connection.sendTransaction(
-        {
-          recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-          feePayer: fromWallet.publicKey,
-          instructions: [ix],
-        },
-        [fromWallet]
-      )
+      const tx = new Transaction().add(ix)
+      tx.feePayer = fromWallet.publicKey
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 
-      console.log(`✅ Sent 100 LIKE to ${wallet}: ${tx}`)
+      const signature = await connection.sendTransaction(tx, [fromWallet])
+      console.log(`✅ Sent 100 LIKE to ${wallet}: ${signature}`)
     } catch (err) {
       console.error('❌ Error sending LIKE:', err)
     } finally {
