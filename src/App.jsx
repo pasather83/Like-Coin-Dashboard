@@ -58,11 +58,18 @@ function App() {
       const fromATA = getAssociatedTokenAddressSync(LIKE_MINT, fromWallet.publicKey)
       const toATA = getAssociatedTokenAddressSync(LIKE_MINT, new PublicKey(wallet))
 
-      const ix = createTransferInstruction(
+	const ix = createTransferInstruction(fromATA,toATA,fromWallet.publicKey,100_000_000_000, // ✅ 100 LIKE
+  [],
+  TOKEN_PROGRAM_ID
+)
+   
+
+
+   const ix = createTransferInstruction(
         fromATA,
         toATA,
         fromWallet.publicKey,
-        100_000_000, // 100 LIKE in lamports (assuming 9 decimals)
+	100_000_000_000, // 100 LIKE in lamports
         [],
         TOKEN_PROGRAM_ID
       )
