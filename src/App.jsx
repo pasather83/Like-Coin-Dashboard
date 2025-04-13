@@ -17,6 +17,15 @@ window.Buffer = Buffer
 const RPC_URL = 'https://api.devnet.solana.com'
 const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
 
+const trendingTokens = [
+  { symbol: 'JUP', price: '0.46', change: '+3.2%' },
+  { symbol: 'SOL', price: '172.01', change: '+1.5%' },
+  { symbol: 'BONK', price: '0.000014', change: '+8.1%' },
+  { symbol: 'LIKE', price: '0.0042', change: '+10.0%' },
+  { symbol: 'WIF', price: '3.92', change: '-2.3%' },
+  { symbol: 'SHDW', price: '0.41', change: '+5.6%' },
+]
+
 function App() {
   const [wallet, setWallet] = useState(null)
   const [likeBalance, setLikeBalance] = useState(null)
@@ -160,6 +169,28 @@ function App() {
       paddingTop: '40px'
     }}>
       <ToastContainer />
+
+      <div style={{
+        width: '100%',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        background: '#222',
+        color: '#0ff',
+        padding: '8px 0',
+        fontSize: '14px'
+      }}>
+        <div style={{
+          display: 'inline-block',
+          animation: 'scroll 30s linear infinite',
+        }}>
+          {trendingTokens.map((token, i) => (
+            <span key={i} style={{ marginRight: 40 }}>
+              <strong>{token.symbol}</strong>: ${token.price} ({token.change})
+            </span>
+          ))}
+        </div>
+      </div>
+
       <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px' }} />
       <h1>🚀 Like Coin (Solana)</h1>
 
