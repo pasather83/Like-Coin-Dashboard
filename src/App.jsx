@@ -148,121 +148,117 @@ function App() {
   const shortenWallet = (addr) => `${addr.slice(0, 4)}...${addr.slice(-4)}`
 
   return (
-    <>
-      <div style={{
-        width: '100%',
-        padding: '8px 0',
-        backgroundColor: '#1a1a1a',
-        color: '#66ffff',
-        fontSize: '14px',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        position: 'fixed',
-        top: 0,
-        zIndex: 9999,
-        borderBottom: '1px solid #333',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-      }}>
-        <marquee scrollamount="6">
-          {`JUP: $0.46 (+3.2%) | SOL: $172.01 (+1.5%) | BONK: $0.000014 (+8.1%) | LIKE: $0.0043 (+10.0%) | WIF: $3.92 (-2.3%) | SHDW: $0.41 (+5.6%)`}
-        </marquee>
+    <div style={{
+      fontFamily: 'Arial, sans-serif',
+      color: theme === 'dark' ? '#fff' : '#000',
+      backgroundColor: theme === 'dark' ? '#111' : '#f2f2f2',
+      height: '100vh',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      paddingTop: '80px'
+    }}>
+      <ToastContainer />
+
+      <div style={{ position: 'absolute', top: 0, width: '100%', backgroundColor: '#222', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', zIndex: 1 }}>
+        <div style={{ display: 'inline-block', padding: '10px', animation: 'scroll 20s linear infinite' }}>
+          🔥 Trending: $BONK is pumping! | $JUP listing on major DEX | $LIKE airdrop live now! 🚀
+        </div>
       </div>
-      <div style={{ height: '40px' }}></div>
 
-      <div style={{
-        fontFamily: 'Arial, sans-serif',
-        color: theme === 'dark' ? '#fff' : '#000',
-        backgroundColor: theme === 'dark' ? '#111' : '#f2f2f2',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingTop: '40px'
+      <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
+        position: 'absolute',
+        top: 40,
+        right: 10,
+        backgroundColor: '#666',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '5px 10px',
+        cursor: 'pointer',
+        zIndex: 2
       }}>
-        <ToastContainer />
-        <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px' }} />
-        <h1>🚀 Like Coin (Solana)</h1>
+        {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+      </button>
 
-        <input
-          type="text"
-          placeholder="🔎 Search token or address..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+      <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px', zIndex: 2 }} />
+      <h1 style={{ zIndex: 2 }}>🚀 Like Coin (Solana)</h1>
+
+      <input
+        type="text"
+        placeholder="🔎 Search token or address..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{
+          margin: '10px 0',
+          padding: '8px 14px',
+          fontSize: '16px',
+          borderRadius: '8px',
+          border: '1px solid #ccc',
+          width: '300px',
+          zIndex: 2
+        }}
+      />
+
+      {wallet && (
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', zIndex: 2 }}>
+          <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
+          <p style={{ marginLeft: '10px', marginRight: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
+          <button onClick={handleDisconnect} style={{ backgroundColor: '#333', color: '#fff', padding: '6px 10px', borderRadius: '6px', border: 'none' }}>Disconnect</button>
+        </div>
+      )}
+
+      <p style={{ zIndex: 2 }}><strong>LIKE Balance:</strong> {likeBalance !== null ? likeBalance : 'Loading...'}</p>
+
+      {wallet && (
+        <button
+          onClick={handleFaucet}
+          disabled={sending}
           style={{
-            margin: '10px 0',
-            padding: '8px 14px',
+            backgroundColor: '#ffd700',
+            color: '#000',
+            padding: '10px 20px',
             fontSize: '16px',
             borderRadius: '8px',
-            border: '1px solid #ccc',
-            width: '300px'
+            marginTop: '20px',
+            cursor: sending ? 'not-allowed' : 'pointer',
+            border: 'none',
+            zIndex: 2
           }}
-        />
-
-        <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          backgroundColor: '#666',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '4px',
-          padding: '5px 10px',
-          cursor: 'pointer'
-        }}>
-          {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+        >
+          {sending ? 'Sending...' : 'Get 100 LIKE'}
         </button>
+      )}
 
-        {wallet && (
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-            <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
-            <p style={{ marginLeft: '10px', marginRight: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
-            <button onClick={handleDisconnect} style={{ backgroundColor: '#333', color: '#fff', padding: '6px 10px', borderRadius: '6px', border: 'none' }}>Disconnect</button>
-          </div>
-        )}
+      {transactions.length > 0 && (
+        <div style={{ marginTop: '30px', textAlign: 'center', zIndex: 2 }}>
+          <h3 style={{ color: '#ffd700' }}>Recent LIKE Transfers</h3>
+          {transactions.map((tx, index) => (
+            <div key={index} style={{ margin: '10px 0' }}>
+              <div><strong>Amount:</strong> {tx.amount} LIKE</div>
+              <div><strong>Date:</strong> {tx.date}</div>
+              <a
+                href={`https://explorer.solana.com/tx/${tx.signature}?cluster=devnet`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: '#66f' }}
+              >
+                View on Explorer ↗
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
 
-        <p><strong>LIKE Balance:</strong> {likeBalance !== null ? likeBalance : 'Loading...'}</p>
-
-        {wallet && (
-          <button
-            onClick={handleFaucet}
-            disabled={sending}
-            style={{
-              backgroundColor: '#ffd700',
-              color: '#000',
-              padding: '10px 20px',
-              fontSize: '16px',
-              borderRadius: '8px',
-              marginTop: '20px',
-              cursor: sending ? 'not-allowed' : 'pointer',
-              border: 'none'
-            }}
-          >
-            {sending ? 'Sending...' : 'Get 100 LIKE'}
-          </button>
-        )}
-
-        {transactions.length > 0 && (
-          <div style={{ marginTop: '30px', textAlign: 'center' }}>
-            <h3 style={{ color: '#ffd700' }}>Recent LIKE Transfers</h3>
-            {transactions.map((tx, index) => (
-              <div key={index} style={{ margin: '10px 0' }}>
-                <div><strong>Amount:</strong> {tx.amount} LIKE</div>
-                <div><strong>Date:</strong> {tx.date}</div>
-                <a
-                  href={`https://explorer.solana.com/tx/${tx.signature}?cluster=devnet`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: '#66f' }}
-                >
-                  View on Explorer ↗
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </>
+      <style>{`
+        @keyframes scroll {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+      `}</style>
+    </div>
   )
 }
 
