@@ -1,12 +1,38 @@
-# React + Vite
+# 🚀 Like Coin (Solana)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Like Coin** is a Solana-based reward token designed to power social engagement and gamified loyalty systems. This Devnet dashboard allows users to simulate token activity and build excitement around the LIKE ecosystem.
 
-Currently, two official plugins are available:
+### 💡 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ✅ Connect your Phantom wallet
+- ✅ View real-time LIKE token balance
+- ✅ Request 100 LIKE from faucet
+- ✅ View recent LIKE token transfers
+- ✅ Simulate a swap from LIKE → USDC
+- ✅ Leaderboard preview of LIKE holders (testnet)
+- 🌓 Dark/Light theme toggle coming soon!
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🌐 Live Demo
+
+👉 [https://likecoin.io](https://likecoin.io)
+
+---
+
+## 🛠 Built With
+
+- React + Vite
+- Solana Web3.js & SPL Token
+- Phantom Wallet Integration
+- Toastify, Blockies
+- Vercel Hosting
+
+---
+
+## ⚙️ Environment Setup
+
+In your `.env` file:
+
+```env
+VITE_MASTER_SECRET=[Your Devnet Wallet Secret Key Array]
