@@ -1,6 +1,11 @@
+<img src="./public/like-coin-banner.png" alt="Like Coin Banner" width="100%" />
+
 # 🚀 Like Coin (Solana)
 
-**Like Coin** is a Solana-based reward token designed to power social engagement and gamified loyalty systems. This Devnet dashboard allows users to simulate token activity and build excitement around the LIKE ecosystem.
+**Like Coin** is a Solana-based reward token designed to power social engagement and gamified loyalty systems.  
+This Devnet dashboard lets users claim LIKE tokens, track transfers, simulate swaps, and preview leaderboards.
+
+---
 
 ### 💡 Features
 
@@ -25,7 +30,7 @@
 - React + Vite
 - Solana Web3.js & SPL Token
 - Phantom Wallet Integration
-- Toastify, Blockies
+- Toastify, Blockies, Custom Faucet Engine
 - Vercel Hosting
 
 ---
