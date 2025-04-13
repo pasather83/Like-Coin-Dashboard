@@ -10,6 +10,7 @@ import { Buffer } from 'buffer'
 import Blockies from 'react-blockies'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import logo from '/Logo.jpg' // updated to load from public folder
 
 window.Buffer = Buffer
 
@@ -151,6 +152,7 @@ function App() {
       justifyContent: 'center'
     }}>
       <ToastContainer />
+      <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px' }} />
       <h1>🚀 Like Coin (Solana)</h1>
 
       {wallet && (
