@@ -16,7 +16,6 @@ window.Buffer = Buffer
 
 const RPC_URL = 'https://api.devnet.solana.com'
 const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
-const USDC_MINT = new PublicKey('7XSz7m1Sb2fKDn4nWBkihtf3Mz5Xevd7Px1YoQCKfG6E')
 
 function App() {
   const [wallet, setWallet] = useState(null)
@@ -24,9 +23,12 @@ function App() {
   const [sending, setSending] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [connected, setConnected] = useState(false)
-  const [swapAmount, setSwapAmount] = useState('')
-  const [swapResult, setSwapResult] = useState(null)
-  const [leaderboard, setLeaderboard] = useState([])
+  const [theme, setTheme] = useState('dark')
+
+  useEffect(() => {
+    document.body.style.backgroundColor = theme === 'dark' ? '#111' : '#fff'
+    document.body.style.color = theme === 'dark' ? '#fff' : '#000'
+  }, [theme])
 
   useEffect(() => {
     const checkWalletAndFetchBalance = async () => {
@@ -81,20 +83,9 @@ function App() {
     fetchTransactions()
   }, [wallet])
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      const mock = [
-        { address: 'Fh1T...9kZs', amount: 5200 },
-        { address: '3dJk...LfQq', amount: 4300 },
-        { address: '99kR...VpYu', amount: 2900 }
-      ]
-      setLeaderboard(mock)
-    }
-    fetchLeaderboard()
-  }, [])
-
   const handleFaucet = async () => {
     if (!wallet) return
+
     const lastClaim = localStorage.getItem(`lastFaucet_${wallet}`)
     const now = Date.now()
     const cooldown = 5 * 60 * 1000
@@ -143,13 +134,6 @@ function App() {
     }
   }
 
-  const simulateSwap = () => {
-    const likeAmount = parseFloat(swapAmount)
-    if (!likeAmount || likeAmount <= 0) return
-    const usdcValue = (likeAmount * 0.01).toFixed(2)
-    setSwapResult(`${likeAmount} LIKE ≈ ${usdcValue} USDC`)
-  }
-
   const handleDisconnect = () => {
     if ('solana' in window && window.solana.disconnect) {
       window.solana.disconnect()
@@ -165,20 +149,36 @@ function App() {
   return (
     <div style={{
       fontFamily: 'Arial, sans-serif',
-      color: '#fff',
-      backgroundColor: '#111',
-      minHeight: '100vh',
-      padding: '20px',
-      textAlign: 'center'
+      color: theme === 'dark' ? '#fff' : '#000',
+      backgroundColor: theme === 'dark' ? '#111' : '#f2f2f2',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center'
     }}>
       <ToastContainer />
-      <img src={logo} alt="Like Coin Logo" style={{ width: 100, borderRadius: '12px' }} />
+      <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px' }} />
       <h1>🚀 Like Coin (Solana)</h1>
 
+      <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#666',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '5px 10px',
+        cursor: 'pointer'
+      }}>
+        {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+      </button>
+
       {wallet && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 15 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
           <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
-          <p style={{ margin: '0 10px' }}><strong>{shortenWallet(wallet)}</strong></p>
+          <p style={{ marginLeft: '10px', marginRight: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
           <button onClick={handleDisconnect} style={{ backgroundColor: '#333', color: '#fff', padding: '6px 10px', borderRadius: '6px', border: 'none' }}>Disconnect</button>
         </div>
       )}
@@ -204,44 +204,23 @@ function App() {
         </button>
       )}
 
-      <div style={{ marginTop: '40px' }}>
-        <h3>🔁 Simulate LIKE → USDC</h3>
-        <input
-          type="number"
-          placeholder="Enter LIKE amount"
-          value={swapAmount}
-          onChange={(e) => setSwapAmount(e.target.value)}
-          style={{ padding: '8px', borderRadius: '6px', marginRight: '8px', width: '150px' }}
-        />
-        <button onClick={simulateSwap} style={{ padding: '8px 16px', borderRadius: '6px' }}>Simulate</button>
-        {swapResult && <p style={{ marginTop: '10px' }}>{swapResult}</p>}
-      </div>
-
       {transactions.length > 0 && (
-        <div style={{ marginTop: '40px' }}>
+        <div style={{ marginTop: '30px', textAlign: 'center' }}>
           <h3 style={{ color: '#ffd700' }}>Recent LIKE Transfers</h3>
           {transactions.map((tx, index) => (
             <div key={index} style={{ margin: '10px 0' }}>
               <div><strong>Amount:</strong> {tx.amount} LIKE</div>
               <div><strong>Date:</strong> {tx.date}</div>
-              <a href={`https://explorer.solana.com/tx/${tx.signature}?cluster=devnet`} target="_blank" rel="noreferrer" style={{ color: '#66f' }}>
+              <a
+                href={`https://explorer.solana.com/tx/${tx.signature}?cluster=devnet`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: '#66f' }}
+              >
                 View on Explorer ↗
               </a>
             </div>
           ))}
-        </div>
-      )}
-
-      {leaderboard.length > 0 && (
-        <div style={{ marginTop: '40px' }}>
-          <h3>🏆 Top LIKE Holders</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {leaderboard.map((entry, i) => (
-              <li key={i} style={{ marginBottom: '8px' }}>
-                <strong>{i + 1}. {entry.address}</strong>: {entry.amount} LIKE
-              </li>
-            ))}
-          </ul>
         </div>
       )}
     </div>
