@@ -24,6 +24,7 @@ function App() {
   const [transactions, setTransactions] = useState([])
   const [connected, setConnected] = useState(false)
   const [theme, setTheme] = useState('dark')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     document.body.style.backgroundColor = theme === 'dark' ? '#111' : '#fff'
@@ -155,11 +156,27 @@ function App() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'flex-start',
+      paddingTop: '40px'
     }}>
       <ToastContainer />
       <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px' }} />
       <h1>🚀 Like Coin (Solana)</h1>
+
+      <input
+        type="text"
+        placeholder="🔎 Search token or address..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{
+          margin: '10px 0',
+          padding: '8px 14px',
+          fontSize: '16px',
+          borderRadius: '8px',
+          border: '1px solid #ccc',
+          width: '300px'
+        }}
+      />
 
       <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{
         position: 'absolute',
