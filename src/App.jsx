@@ -21,6 +21,7 @@ function App() {
   const [likeBalance, setLikeBalance] = useState(null)
   const [sending, setSending] = useState(false)
   const [transactions, setTransactions] = useState([])
+  const [connected, setConnected] = useState(false)
 
   useEffect(() => {
     const checkWalletAndFetchBalance = async () => {
@@ -31,6 +32,7 @@ function App() {
             await provider.connect()
             const walletPublicKey = provider.publicKey
             setWallet(walletPublicKey.toString())
+            setConnected(true)
 
             const connection = new Connection(RPC_URL)
             const ata = getAssociatedTokenAddressSync(LIKE_MINT, walletPublicKey)
@@ -79,7 +81,7 @@ function App() {
 
     const lastClaim = localStorage.getItem(`lastFaucet_${wallet}`)
     const now = Date.now()
-    const cooldown = 5 * 60 * 1000 // 5 minutes
+    const cooldown = 5 * 60 * 1000
 
     if (lastClaim && now - parseInt(lastClaim) < cooldown) {
       toast.warn('⏳ Please wait before claiming again!')
@@ -125,13 +127,13 @@ function App() {
     }
   }
 
-  const disconnectWallet = async () => {
-    if (window.solana && window.solana.isPhantom) {
-      await window.solana.disconnect()
+  const handleDisconnect = () => {
+    if ('solana' in window && window.solana.disconnect) {
+      window.solana.disconnect()
       setWallet(null)
+      setConnected(false)
       setLikeBalance(null)
       setTransactions([])
-      toast.info('👋 Wallet disconnected!')
     }
   }
 
@@ -149,26 +151,13 @@ function App() {
       justifyContent: 'center'
     }}>
       <ToastContainer />
-      <h1>🚀 Like Coin Dashboard</h1>
+      <h1>🚀 Like Coin (Solana)</h1>
 
       {wallet && (
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
           <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
-          <p style={{ marginLeft: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
-          <button
-            onClick={disconnectWallet}
-            style={{
-              marginLeft: '15px',
-              padding: '6px 12px',
-              backgroundColor: '#333',
-              color: '#fff',
-              border: '1px solid #555',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}
-          >
-            Disconnect
-          </button>
+          <p style={{ marginLeft: '10px', marginRight: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
+          <button onClick={handleDisconnect} style={{ backgroundColor: '#333', color: '#fff', padding: '6px 10px', borderRadius: '6px', border: 'none' }}>Disconnect</button>
         </div>
       )}
 
