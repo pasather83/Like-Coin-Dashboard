@@ -10,13 +10,12 @@ import { Buffer } from 'buffer'
 import Blockies from 'react-blockies'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import logo from '/Logo.jpg'
+import logo from '/Logo.jpg' // updated to load from public folder
 
 window.Buffer = Buffer
 
 const RPC_URL = 'https://api.devnet.solana.com'
 const LIKE_MINT = new PublicKey('3Nx5eK8sZd8Sqa6fVqkwEP3j9Dt2PwkqctGBYHTaeyQT')
-const USDC_PRICE = 0.005 // Simulated: 1 LIKE = 0.005 USDC
 
 function App() {
   const [wallet, setWallet] = useState(null)
@@ -24,8 +23,11 @@ function App() {
   const [sending, setSending] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [connected, setConnected] = useState(false)
-  const [swapAmount, setSwapAmount] = useState('')
-  const [usdcOutput, setUsdcOutput] = useState('')
+  const [leaderboard, setLeaderboard] = useState([
+    { wallet: '9xXY...V8yu', balance: 1543 },
+    { wallet: '4dqB...Yt9M', balance: 1260 },
+    { wallet: '6oTW...D3pX', balance: 945 }
+  ])
 
   useEffect(() => {
     const checkWalletAndFetchBalance = async () => {
@@ -50,6 +52,7 @@ function App() {
         }
       }
     }
+
     checkWalletAndFetchBalance()
   }, [])
 
@@ -75,11 +78,13 @@ function App() {
         console.error('Failed to fetch transactions:', err)
       }
     }
+
     fetchTransactions()
   }, [wallet])
 
   const handleFaucet = async () => {
     if (!wallet) return
+
     const lastClaim = localStorage.getItem(`lastFaucet_${wallet}`)
     const now = Date.now()
     const cooldown = 5 * 60 * 1000
@@ -138,13 +143,6 @@ function App() {
     }
   }
 
-  const handleSwapChange = (e) => {
-    const input = e.target.value
-    setSwapAmount(input)
-    const simUSDC = parseFloat(input) * USDC_PRICE
-    setUsdcOutput(simUSDC.toFixed(4))
-  }
-
   const shortenWallet = (addr) => `${addr.slice(0, 4)}...${addr.slice(-4)}`
 
   return (
@@ -152,13 +150,12 @@ function App() {
       fontFamily: 'Arial, sans-serif',
       color: '#fff',
       backgroundColor: '#111',
-      height: '100%',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
+      justifyContent: 'flex-start',
+      paddingTop: '30px'
     }}>
       <ToastContainer />
       <img src={logo} alt="Like Coin Logo" style={{ width: 100, marginBottom: 20, borderRadius: '12px' }} />
@@ -193,18 +190,6 @@ function App() {
         </button>
       )}
 
-      <div style={{ marginTop: '40px' }}>
-        <h3 style={{ color: '#ffd700' }}>💱 Swap Simulator (LIKE → USDC)</h3>
-        <input
-          type="number"
-          value={swapAmount}
-          onChange={handleSwapChange}
-          placeholder="Enter LIKE amount"
-          style={{ padding: '10px', fontSize: '16px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '10px' }}
-        />
-        <p><strong>Estimated USDC:</strong> {usdcOutput}</p>
-      </div>
-
       {transactions.length > 0 && (
         <div style={{ marginTop: '30px', textAlign: 'center' }}>
           <h3 style={{ color: '#ffd700' }}>Recent LIKE Transfers</h3>
@@ -224,6 +209,17 @@ function App() {
           ))}
         </div>
       )}
+
+      <div style={{ marginTop: '40px', maxWidth: '400px', width: '100%' }}>
+        <h3 style={{ color: '#ffd700', textAlign: 'center' }}>🏆 Top LIKE Holders</h3>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {leaderboard.map((entry, idx) => (
+            <li key={idx} style={{ marginBottom: '10px', background: '#222', padding: '10px', borderRadius: '8px' }}>
+              <strong>{idx + 1}.</strong> {shortenWallet(entry.wallet)} — {entry.balance} LIKE
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }
