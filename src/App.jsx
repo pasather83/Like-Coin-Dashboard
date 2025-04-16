@@ -26,6 +26,7 @@ function App() {
   const [theme, setTheme] = useState('dark')
   const [searchQuery, setSearchQuery] = useState('')
   const [twitterHandle, setTwitterHandle] = useState(null)
+  const [showWallet, setShowWallet] = useState(true)
 
   useEffect(() => {
     document.body.style.backgroundColor = theme === 'dark' ? '#111' : '#fff'
@@ -235,12 +236,30 @@ function App() {
         </p>
       )}
 
-      {wallet && (
+      {wallet && showWallet && (
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', zIndex: 2 }}>
           <Blockies seed={wallet.toLowerCase()} size={10} scale={4} />
           <p style={{ marginLeft: '10px', marginRight: '10px' }}><strong>{shortenWallet(wallet)}</strong></p>
           <button onClick={handleDisconnect} style={{ backgroundColor: '#333', color: '#fff', padding: '6px 10px', borderRadius: '6px', border: 'none' }}>Disconnect</button>
         </div>
+      )}
+
+      {wallet && (
+        <button
+          onClick={() => setShowWallet(!showWallet)}
+          style={{
+            backgroundColor: '#444',
+            color: '#fff',
+            padding: '4px 12px',
+            fontSize: '13px',
+            borderRadius: '6px',
+            marginBottom: '10px',
+            zIndex: 2,
+            border: 'none'
+          }}
+        >
+          {showWallet ? 'Hide Wallet' : 'Show Wallet'}
+        </button>
       )}
 
       <p style={{ zIndex: 2 }}><strong>LIKE Balance:</strong> {likeBalance !== null ? likeBalance : 'Loading...'}</p>
