@@ -25,6 +25,7 @@ function App() {
   const [connected, setConnected] = useState(false)
   const [theme, setTheme] = useState('dark')
   const [searchQuery, setSearchQuery] = useState('')
+  const [twitterHandle, setTwitterHandle] = useState(null)
 
   useEffect(() => {
     document.body.style.backgroundColor = theme === 'dark' ? '#111' : '#fff'
@@ -145,6 +146,14 @@ function App() {
     }
   }
 
+  const handleConnectTwitter = () => {
+    const mockHandle = prompt('Enter your Twitter handle (e.g. @yourname):')
+    if (mockHandle) {
+      setTwitterHandle(mockHandle)
+      toast.success(`🔗 Connected to ${mockHandle}`)
+    }
+  }
+
   const shortenWallet = (addr) => `${addr.slice(0, 4)}...${addr.slice(-4)}`
 
   return (
@@ -201,6 +210,30 @@ function App() {
           zIndex: 2
         }}
       />
+
+      {connected && !twitterHandle && (
+        <button
+          onClick={handleConnectTwitter}
+          style={{
+            backgroundColor: '#1DA1F2',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '8px 14px',
+            cursor: 'pointer',
+            marginBottom: '10px',
+            zIndex: 2
+          }}
+        >
+          Connect Twitter 🐦
+        </button>
+      )}
+
+      {twitterHandle && (
+        <p style={{ fontStyle: 'italic', color: theme === 'dark' ? '#ddd' : '#333', zIndex: 2 }}>
+          🔗 Linked as <strong>{twitterHandle}</strong>
+        </p>
+      )}
 
       {wallet && (
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', zIndex: 2 }}>
